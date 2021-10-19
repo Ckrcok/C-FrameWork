@@ -24,7 +24,6 @@ public:
 	~GameManager();
 	bool OnCreate();
 	void OnDestroy();
-
 	void Run();
 };
 #endif

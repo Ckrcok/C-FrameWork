@@ -1,4 +1,5 @@
 #include "Body.h"
+#include "SDL_timer.h"
 
 Body::Body(){
 	pos.x = 2.0f;
@@ -22,12 +23,12 @@ Body::Body(Vec3 pos_) {
 	pos.y = pos_.y;
 	pos.z = pos_.z;
 
-	vel.x = 20.0f;
+	vel.x = 0.0f;
 	vel.y = 0.0f;
 	vel.z = 0.0f;
 
 	accel.x = 0.0f;
-	accel.y = -9.81f;
+	accel.y = 0;
 	accel.z = 0.0f;
 
 	mass = 0.0f;
@@ -36,6 +37,8 @@ Body::Body(Vec3 pos_) {
 Body::~Body(){
 
 }
+
+
 
 void Body::Update(float deltaTime){
 	pos.x += vel.x * deltaTime + 0.5f * accel.x * deltaTime * deltaTime;
@@ -49,8 +52,29 @@ void Body::Update(float deltaTime){
 
 	// floor collision
 	if (pos.y < 2.2f) {
-		vel.y *= -1.f;
-		pos.y = 2.2;
+		vel.y *= 0;
+		accel.x = 0;
+		vel.x = 0;
+		pos.y = 2.2f; 
+		for (int i = 0; i < 10001; i++) {
+			printf("time %i\n", i);
+			if (i == 10000) {
+				printf("reset\n");
+				pos.x = 2.0f;
+				pos.y = 16.5f;
+				pos.z = 0.0f;
+
+				vel.x = 15.0f;
+				vel.y = 0.0f;
+				vel.z = 0.0f;
+
+				accel.x = 0.0f;
+				accel.y = -9.81f;
+				accel.z = 0.0f;
+
+				mass = 0.0f;
+			}
+		}
 	}
 
 	//roof collision

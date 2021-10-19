@@ -3,34 +3,49 @@
 #include <SDL_image.h>
 Scene1::Scene1(SDL_Window* sdlWindow_){
 	window = sdlWindow_;
-	balloon1 = new Body(Vec3(15.0f, 14.0f,0.0f )); // (x , y , z)
-	balloon2 = new Body(Vec3(3.0f, 10.0f, 0.0f));
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (renderer == nullptr) {
+		std:: cout << "Can't create the renderer \n";
+	}
+	flappyBird = new Body(Vec3(0, 16.0f,0.0f )); // (x , y , z)
+	flappyBird->setAccel(Vec3(6.0f, -9.81, 0.0f));
+	cliff = new Body(Vec3(0.0f, 15.0f, 0.0f));
 	std::cout << "hello from Scene1 \n";
 }
 
 Scene1::~Scene1(){
-	delete balloon1;
-	delete balloon2;
+	delete flappyBird;
+	delete cliff;
 }
 
+
+//SDL_KeyboardEvent
+
 bool Scene1::OnCreate() {
+	IMG_Init(IMG_INIT_PNG);
+	SDL_Surface* image;
 	int w, h;
 	SDL_GetWindowSize(window,&w,&h);
 	
 	Matrix4 ndc = MMath::viewportNDC(w, h);
 	Matrix4 ortho = MMath::orthographic(0.0f, 30.0f, 0.0f, 15.0f, 0.0f, 1.0f);// it's gonna be 0 zero bottom 15 hieght 
 	projectionMatrix = ndc * ortho;
-	
 
 
 
-	IMG_Init(IMG_INIT_PNG);
-	ballImage = IMG_Load("textures/ball.png");
-	if (ballImage == nullptr) {
-		std::cout << "Can't Open Image file \n";
+	image = IMG_Load("textures/flappybird1.png");
+	if (image == nullptr) {
+		std::cout << "can't load image \n";
 		return false;
 	}
+	flappyBirdTexture = SDL_CreateTextureFromSurface(renderer, image);
 
+	image = IMG_Load("textures/cliff.png");
+	if (image == nullptr) {
+		std::cout << "can't load image \n";
+		return false;
+	}
+	cliffTexture = SDL_CreateTextureFromSurface(renderer, image);
 
 	return true;
 }
@@ -38,34 +53,52 @@ bool Scene1::OnCreate() {
 void Scene1::OnDestroy() {}
 
 void Scene1::Update(const float deltaTime) {
-	//printf("%f\n", deltaTime);
-	balloon1->Update(deltaTime);
-	balloon2->Update(deltaTime);
+	if (start == true) {
+		//printf("%f\n", deltaTime);
+		flappyBird->Update(deltaTime);
+		cliff->Update(deltaTime);
+	}
+}
+
+
+void Scene1::HandleEvent(const SDL_Event&  sdlEvent) {
+
+	if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+		start = !start;
+	}
+
 }
 
 void Scene1::Render() {
-	SDL_Surface *screenSurface = SDL_GetWindowSurface(window);
-	SDL_FillRect(screenSurface, nullptr, SDL_MapRGB(screenSurface->format, 0, 0, 0));
+	// clear the screen
+
+	SDL_GetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_RenderClear(renderer);
+
+
 	Vec3 screenCoords;
 	SDL_Rect square;
+	int width, height;
 
 
-	screenCoords = projectionMatrix * balloon1->getPos();
-	square.x = (int) screenCoords.x; /// We must update this with C11 typecasting - SSF
-	square.y = (int) screenCoords.y;
-	square.w = 30;
-	square.h = 30;
-	SDL_BlitSurface(ballImage, nullptr,  screenSurface, &square );
-	//SDL_FillRect(screenSurface, &square, SDL_MapRGB(screenSurface->format,255, 0, 0));
-
-
-	screenCoords = projectionMatrix * balloon2->getPos();
+	screenCoords = projectionMatrix * cliff->getPos();
+	SDL_QueryTexture(cliffTexture, nullptr, nullptr, &width, &height);
 	square.x = (int)screenCoords.x; /// We must update this with C11 typecasting - SSF
 	square.y = (int)screenCoords.y;
-	square.w = 30;
-	square.h = 30;
-	SDL_BlitSurface(ballImage, nullptr, screenSurface, &square);
-	//SDL_FillRect(screenSurface, &square, SDL_MapRGB(screenSurface->format, 0, 0, 255));
+	square.w = width;
+	square.h = height;
+	SDL_RenderCopyEx(renderer, cliffTexture, nullptr, &square, 0.0, nullptr, SDL_FLIP_NONE);
 
-	SDL_UpdateWindowSurface(window);
-}
+
+
+	screenCoords = projectionMatrix * flappyBird->getPos();
+	SDL_QueryTexture(flappyBirdTexture, nullptr, nullptr, &width, &height);
+	square.x = (int)screenCoords.x; /// We must update this with C11 typecasting - SSF
+	square.y = (int)screenCoords.y;
+	square.w = width;
+	square.h = height;
+	SDL_RenderCopyEx(renderer, flappyBirdTexture, nullptr, &square, 0.0, nullptr, SDL_FLIP_NONE);
+
+
+	SDL_RenderPresent(renderer);
+};

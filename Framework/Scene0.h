@@ -24,6 +24,8 @@ public:
 	void OnDestroy();
 	void Update(const float time);
 	void Render();
+
+	virtual void HandleEvents(const SDL_Event& sdlEvent) = 0;
 };
 
 #endif

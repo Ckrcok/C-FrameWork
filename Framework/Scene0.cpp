@@ -8,8 +8,6 @@ Scene0::Scene0(SDL_Window* sdlWindow_){
 
 	std::cout << "hello from Scene0 \n";
 
-
-
 }
 
 Scene0::~Scene0(){
@@ -40,6 +38,8 @@ bool Scene0::OnCreate() {
 }
 
 void Scene0::OnDestroy() {}
+
+
 
 void Scene0::Update(const float deltaTime) {
 	//printf("%f\n", deltaTime);

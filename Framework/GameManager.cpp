@@ -50,24 +50,27 @@ bool GameManager::OnCreate() {
 
 /// Here's the whole game
 void GameManager::Run() {
+	SDL_Event e;
 	timer->Start();
-	while (isRunning) {
-
-		//while (SDL_PollEvent(&e) != 0) {
-		//	if (e.type == SDL_Quit) {
-		//		isRunning = false;
-		//}
-		//}
-
-
+	while (isRunning == true) {
+		//Handle events on queue
+		while (SDL_PollEvent(&e) != 0) {
+			//User requests quit (by clicking x at the top)
+			if (e.type == SDL_QUIT) {
+				isRunning = false;
+			}
+			currentScene->HandleEvent(e);
+		}
 		timer->UpdateFrameTicks();
 		currentScene->Update(timer->GetDeltaTime());
 		currentScene->Render();
-
-		/// Keeep the event loop running at a proper rate
+		/// Keep the event loop running at a proper rate
 		SDL_Delay(timer->GetSleepTime(60)); ///60 frames per sec
 	}
+	return; /// all done, back to main()
 }
+
+
 
 GameManager::~GameManager() {}
 
